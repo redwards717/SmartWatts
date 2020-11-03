@@ -104,11 +104,6 @@ C:\Users\Rhys\source\repos\SmartWatts\SmartWattsUi\obj\Debug\netcoreapp3.1\Razor
 C:\Users\Rhys\source\repos\SmartWatts\SmartWattsUi\obj\Debug\netcoreapp3.1\Razor\Pages\Leaderboard.razor.g.cs
 C:\Users\Rhys\source\repos\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\Properties\ServiceDependencies\smartwatts - Web Deploy\profile.arm.json
 C:\Users\Rhys\source\repos\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\Properties\ServiceDependencies\SmartWattsAS - Web Deploy\profile.arm.json
-C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\appsettings.Development.json
-C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\appsettings.json
-C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\Properties\launchSettings.json
-C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\Properties\ServiceDependencies\smartwatts - Web Deploy\profile.arm.json
-C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\Properties\ServiceDependencies\SmartWattsAS - Web Deploy\profile.arm.json
 C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\SmartWattsUi.StaticWebAssets.xml
 C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\SmartWattsUi.exe
 C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\SmartWattsUi.deps.json
@@ -213,3 +208,4 @@ C:\Projects\SmartWatts\SmartWattsUi\obj\Debug\netcoreapp3.1\SmartWattsUi.genrunt
 C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling.dll
 C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling.Data.dll
 C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\Microsoft.Practices.TransientFaultHandling.Core.dll
+C:\Projects\SmartWatts\SmartWattsUi\bin\Debug\netcoreapp3.1\appsettings.json
