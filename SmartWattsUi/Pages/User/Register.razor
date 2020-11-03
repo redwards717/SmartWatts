@@ -1,0 +1,50 @@
+﻿@page "/register"
+
+@using SmartWattsDataAccess.TableData
+@using SmartWattsDataAccess.DbModels
+@using SmartWattsUi.Controllers
+@using SmartWattsCore.Models
+
+@inject UserController _userController
+@inject NavigationManager NavigationManager
+
+<h3>Register</h3>
+
+<h6>WARNING: very little is spent on password security, don't use the same password you use for important sites</h6>
+
+<EditForm Model="newUser" OnValidSubmit="AddUser">
+	<InputText id="username" @bind-Value="newUser.Username"></InputText>
+	<InputText id="password" type="password" @bind-Value="newUser.Password"></InputText>
+
+	<button type="submit" class="btn btn-primary">Submit</button>
+</EditForm>
+
+@if (msg != null)
+{
+	<h1>@msg</h1>
+}
+
+@code {
+	private Cyclist newUser = new Cyclist();
+
+	string msg;
+
+	private async Task AddUser()
+	{
+		msg = await _userController.AddUser(newUser);
+
+		newUser = new Cyclist();
+
+		NavigationManager.NavigateTo("login");
+	}
+}
+
+<style>
+	h6 {
+		background: lightyellow;
+		padding: 5px;
+		border: 1px red solid;
+		border-radius: 5px;
+		color: red;
+	}
+</style>

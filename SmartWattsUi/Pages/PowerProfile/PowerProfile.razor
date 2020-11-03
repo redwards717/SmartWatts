@@ -1,0 +1,49 @@
+﻿@page "/powerprofile"
+
+@using SmartWattsCore.Models;
+
+@inject AppState _appState
+
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-1"></div>
+		<div class="col-5">
+			<h5>Current Profile</h5>
+			<PowerProfileChart Rides="rides" LookBack="0"></PowerProfileChart>
+		</div>
+
+		<div class="col-5">
+			<h6 class="latest-ride" @onclick="ViewRide">Before Latest Ride - @latestRide.RideMetaData.RideName - @latestRide.RideMetaData.Date.ToShortDateString()</h6>
+			<PowerProfileChart Rides="rides" LookBack="1"></PowerProfileChart>
+		</div>
+		<div class="col-1"></div>
+	</div>
+</div>
+
+@code {
+	List<Ride> rides;
+	Ride latestRide;
+
+	protected override void OnInitialized()
+	{
+		rides = _appState.LoggedInUser.Rides;
+		var latestRideDate = _appState.LoggedInUser.Rides.Max(r => r.RideMetaData.Date);
+		latestRide = _appState.LoggedInUser.Rides.Where(r => r.RideMetaData.Date == latestRideDate).FirstOrDefault();
+	}
+
+	private void ViewRide()
+	{
+		_appState.ToggleRideViewWindow(true, latestRide);
+	}
+}
+
+<style>
+	.arrow {
+		width: 50px;
+		height: 50px;
+	}
+
+	.latest-ride {
+		cursor: pointer;
+	}
+</style>

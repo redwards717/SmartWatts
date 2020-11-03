@@ -1,0 +1,12 @@
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\bin\Release\netcoreapp3.1\SmartWattsDataAccess.deps.json
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\bin\Release\netcoreapp3.1\SmartWattsDataAccess.dll
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\bin\Release\netcoreapp3.1\SmartWattsDataAccess.pdb
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\bin\Release\netcoreapp3.1\SmartWattsCore.dll
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\bin\Release\netcoreapp3.1\SmartWattsCore.pdb
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\obj\Release\netcoreapp3.1\SmartWattsDataAccess.csprojAssemblyReference.cache
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\obj\Release\netcoreapp3.1\SmartWattsDataAccess.AssemblyInfoInputs.cache
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\obj\Release\netcoreapp3.1\SmartWattsDataAccess.AssemblyInfo.cs
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\obj\Release\netcoreapp3.1\SmartWattsDataAccess.csproj.CoreCompileInputs.cache
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\obj\Release\netcoreapp3.1\SmartWattsDataAccess.csproj.CopyComplete
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\obj\Release\netcoreapp3.1\SmartWattsDataAccess.dll
+C:\Users\Rhys\source\repos\SmartWatts\SmartWattsDataAccess\obj\Release\netcoreapp3.1\SmartWattsDataAccess.pdb

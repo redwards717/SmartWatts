@@ -1,0 +1,89 @@
+﻿@page "/progression"
+
+@using SmartWattsUi.Controllers
+@using SmartWattsCore
+
+@inject NavigationManager NavigationManager
+@inject AppState _appState
+@inject PowerProfileController _powerProfileController
+
+<h3>Progression</h3>
+
+<form>
+	Comparison interval:
+	@foreach (var tf in timeFrames)
+	{
+		<input id="@tf" type="radio" @onchange="e => GetPowerProgression(tf)" />
+		<label for="@tf">@tf Days</label>
+	}
+</form>
+
+@if (timeFrame != 0)
+{
+	<table>
+		<tr>
+			<th></th>
+			<th>Current @timeFrame Day</th>
+			<th></th>
+			<th>@(timeFrame + 1) - @(timeFrame * 2)</th>
+			<th></th>
+			<th>@(timeFrame * 2 + 1) - @(timeFrame * 3)</th>
+			<th></th>
+			<th>@(timeFrame * 3 + 1) - @(timeFrame * 4)</th>
+		</tr>
+	@foreach (var pp in powerPoints)
+	{
+<tr>
+	<td>@Helpers.ConvertSecToReadable(pp)</td>
+	<td>@powerHistory1.FirstOrDefault(ph => ph.Key == pp).Value</td>
+	<td></td>
+	<td>@powerHistory2.FirstOrDefault(ph => ph.Key == pp).Value</td>
+	<td></td>
+	<td>@powerHistory3.FirstOrDefault(ph => ph.Key == pp).Value</td>
+	<td></td>
+	<td>@powerHistory4.FirstOrDefault(ph => ph.Key == pp).Value</td>
+</tr>
+	}
+	</table>
+}
+
+
+@code {
+	List<int> timeFrames = new List<int>() { 30, 90, 365 };
+	int timeFrame;
+	Dictionary<int, int> powerHistory1 = new Dictionary<int, int>();
+	Dictionary<int, int> powerHistory2 = new Dictionary<int, int>();
+	Dictionary<int, int> powerHistory3 = new Dictionary<int, int>();
+	Dictionary<int, int> powerHistory4 = new Dictionary<int, int>();
+	List<int> powerPoints;
+
+	protected override void OnInitialized()
+	{
+		if (_appState.LoggedInUser == null)
+		{
+			NavigationManager.NavigateTo("splash");
+		}
+		else
+		{
+
+		}
+
+	}
+
+	private void GetPowerProgression(int tf)
+	{
+		timeFrame = tf;
+		powerHistory1 = _powerProfileController.GetPowerCurveHistory(_appState.LoggedInUser.Rides, DateTime.Now, tf);
+		powerHistory2 = _powerProfileController.GetPowerCurveHistory(_appState.LoggedInUser.Rides, DateTime.Now.AddDays(-tf), tf);
+		powerHistory3 = _powerProfileController.GetPowerCurveHistory(_appState.LoggedInUser.Rides, DateTime.Now.AddDays(-tf * 2), tf);
+		powerHistory4 = _powerProfileController.GetPowerCurveHistory(_appState.LoggedInUser.Rides, DateTime.Now.AddDays(-tf * 3), tf);
+		powerPoints = powerHistory1.Keys.ToList();
+	}
+}
+
+<style>
+	td:nth-child(even) {
+		border: 1px black solid;
+		width: 60px;
+	}
+</style>

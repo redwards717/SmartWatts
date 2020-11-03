@@ -1,0 +1,62 @@
+﻿@using SmartWattsDataAccess.DbModels
+@using SmartWattsUi.Controllers
+@using SmartWattsCore.Models;
+
+@inject NavigationManager NavigationManager
+@inject UserController _userController
+@inject AppState _appState
+
+<h4>Sign In</h4>
+
+
+	<input id="username" placeholder="Username" @bind-value="userName">
+	<input id="password" placeholder="password" type="password" @bind-value="password">
+
+	<button type="submit" class="btn btn-primary" @onclick="LoginAttempt">Submit</button>
+
+	@if (msg != "")
+	{
+		<p style="background-color: red">@msg</p>
+	}
+
+
+<NavLink class="nav-link" href="register">
+	<span class="" aria-hidden="true"></span> New User?
+</NavLink>
+
+@code {
+	string userName;
+	string password;
+	string msg = "";
+
+	private async Task LoginAttempt()
+	{
+		var user = new Cyclist()
+		{
+			Username = userName,
+			Password = password
+		};
+
+		
+
+		user = await _userController.LoginAttempt(user);
+
+		if (user != null)
+		{
+
+			_appState.SetUser(user);
+			NavigationManager.NavigateTo("feed");
+		}
+		else
+		{
+			msg = "incorrect username or login";
+			StateHasChanged();
+		}
+	}
+}
+
+<style>
+	input {
+		width: 40%;
+	}
+</style>

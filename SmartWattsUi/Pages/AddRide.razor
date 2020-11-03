@@ -1,0 +1,214 @@
+﻿@using Blazor.FileReader;
+@using SmartWattsUi.Controllers;
+@using SmartWattsCore.Models;
+@using SmartWattsCore;
+
+@inject IFileReaderService fileReaderService;
+@inject RideController _rideController;
+@inject AppState _appState;
+
+<h3>Submit Ride</h3>
+
+<p>choose single or multiple .tcx or .gpx files</p>
+<input type="file" multiple @ref="rideFileElem" />
+<button class="btn btn-primary" @onclick="UploadFile">Upload</button>
+
+
+<hr />
+@if (ride != null)
+{
+
+	<select @bind="@timeFrame">
+		<option value=30>30 Days</option>
+		<option value=90>90 Days</option>
+		<option value=365>1 Year</option>
+		<option value=9999>All Time</option>
+	</select>
+
+	<h5>@ride.RideMetaData.Date</h5>
+	@if (!editMode)
+	{
+		<h5>@ride.RideMetaData.RideName<span class="oi oi-pencil edit-ride" @onclick="e => editMode = !editMode"></span></h5>
+	}
+	else
+	{
+		<input type="text" placeholder="@ride.RideMetaData.RideName" @bind="newName" />
+		<button class="btn btn-outline-success" @onclick="ChangeName">Submit</button>
+	}
+	<ul>
+		<li>Miles: @Helpers.ConvertMetersToMiles(ride.RideMetaData.DistanceMeters)</li>
+		<li>Time: @Helpers.ConvertSecToReadable(ride.RideMetaData.TimeSeconds)</li>
+		<li>Average Watts: @ride.RideMetaData.AvgWatts</li>
+		<li>Average Heart Rate:@ride.RideMetaData.AvgHeartRate</li>
+		<li>Average Cadence: @ride.RideMetaData.AvgCadence</li>
+	</ul>
+
+
+	<PowerTable Ride="ride" TimeFrame="timeFrame"></PowerTable>
+
+	if (dupeRides != "")
+	{
+		<div class="dupe-text">
+			<p>*This ride has already been previously submitted</p>
+		</div>
+		<button class="btn btn-dark" disabled>Submit</button>
+	}
+	else
+	{
+		<button class="btn btn-success" @onclick="SubmitRide">Submit</button>
+	}
+
+	<button class="btn btn-warning" @onclick="Cancel">Cancel</button>
+
+
+}
+
+@if (ridesToAdd != "" || dupeRides != "" && ride == null)
+{
+	<p>Progress ( @ridesLoaded / @ridesToLoad )</p>
+	<p>Rides set to be Added:</p>
+	<p>@ridesToAdd</p>
+
+	if (dupeRides != "")
+	{
+		<div class="dupe-text">
+			<p>Dupelicate Rides Found:</p>
+			<p>@dupeRides</p>
+			<p>*Duplicate rides will not be added</p>
+		</div>
+	}
+
+	<button class="btn btn-success" disabled=@(ridesToLoad != ridesLoaded) @onclick="SubmitRideMultiple">Submit All</button>
+	<button class="btn btn-warning" @onclick="Cancel">Cancel</button>
+}
+
+@code {
+		List<Ride> newRides;
+		ElementReference rideFileElem;
+		IFileReaderRef readerRideFile;
+		Ride ride;
+		int timeFrame = 30;
+		string ridesToAdd = "";
+		string dupeRides = "";
+		int ridesToLoad;
+		int ridesLoaded;
+		bool editMode = false;
+		string newName;
+
+
+	protected override void OnInitialized()
+	{
+
+	}
+
+	private async Task UploadFile()
+	{
+		readerRideFile = fileReaderService.CreateReference(rideFileElem);
+		var rideFiles = (await readerRideFile.EnumerateFilesAsync());
+
+		if (rideFiles.Count() > 1)
+		{
+			await ParseRideMultiple(rideFiles);
+		}
+		else
+		{
+			await ParseSingle(rideFiles.FirstOrDefault());
+		}
+	}
+
+	private async Task ParseSingle(IFileReference rideFile)
+	{
+
+		ride = await _rideController.ParseRideFile(rideFile);
+		ride.Cyclist = _appState.LoggedInUser;
+
+		_rideController.GetPowerCurveHistory(ride);
+
+		CheckForDuplicate(ride);
+	}
+
+	private async Task ParseRideMultiple(IEnumerable<IFileReference> rideFiles)
+	{
+		ridesToLoad = rideFiles.Count();
+		ridesLoaded = 0;
+		newRides = new List<Ride>();
+
+		foreach (var rf in rideFiles)
+		{
+			var ride = await _rideController.ParseRideFile(rf);
+			ride.Cyclist = _appState.LoggedInUser;
+
+			if (CheckForDuplicate(ride))
+			{
+				ridesLoaded++;
+				this.StateHasChanged();
+				continue;
+			}
+
+			newRides.Add(ride);
+			ridesToAdd += ride.RideMetaData.RideName + " / ";
+			ridesLoaded++;
+			this.StateHasChanged();
+		}
+	}
+
+	private void ChangeName()
+	{
+		ride.RideMetaData.RideName = newName;
+		editMode = false;
+		StateHasChanged();
+	}
+
+	private async Task SubmitRide()
+	{
+		_appState.ToggleLoader(true, "Saving Ride");
+
+		await _rideController.InsertRide(ride);
+		List<Ride> singleRideList = new List<Ride>() { ride };
+		_appState.AppendRide(singleRideList);
+
+		_appState.ToggleLoader(false);
+		Toast.PopToast($"{ride.RideMetaData.RideName} saved!", "lightgreen");
+		_appState.ToggleAddWindow(false);
+	}
+
+	private async Task SubmitRideMultiple()
+	{
+		_appState.ToggleLoader(true, $"Saving {newRides.Count()} Rides");
+
+		await _rideController.InsertRides(newRides);
+		_appState.AppendRide(newRides);
+
+		_appState.ToggleLoader(false);
+		Toast.PopToast($"{newRides.Count()} rides saved!", "lightgreen");
+		_appState.ToggleAddWindow(false);
+
+	}
+
+	private bool CheckForDuplicate(Ride ride)
+	{
+		var dupe = _appState.LoggedInUser.Rides.FirstOrDefault(r => r.RideMetaData.Date.AddMinutes(2) > ride.RideMetaData.Date && r.RideMetaData.Date.AddMinutes(-2) < ride.RideMetaData.Date);
+
+		if (dupe == null)
+		{
+			return false;
+		}
+		else
+		{
+			dupeRides += dupe.RideMetaData.RideName + " - " + dupe.RideMetaData.Date.ToString() + " / ";
+			return true;
+		}
+	}
+
+	private void Cancel()
+	{
+		_appState.ToggleAddWindow(false);
+	}
+}
+
+<style>
+	.dupe-text {
+		color: red;
+		font-size: 12px;
+	}
+</style>

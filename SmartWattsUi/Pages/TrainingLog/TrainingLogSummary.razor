@@ -1,0 +1,219 @@
+﻿@using SmartWattsCore.Models;
+@using SmartWattsCore;
+@using SmartWattsUi.Controllers;
+@using SmartWattsUi.Services;
+
+@inject AppState _appState
+@inject RideController _rideController
+@inject TrainingLogController _trainingLogController
+@inject RideServices _rideServices
+
+<div class="row">
+	<div class="ride-card">
+		<div class="current-data">
+			<p>This Week</p>
+			<p>@GetTime(thisWeekRides)</p>
+			<p>@WeekPace(thisWeekRides) (pace for)</p>
+			<table>
+
+				@foreach (var intensity in GetIntensityOccourances(thisWeekRides))
+				{
+					<tr>
+						<td style="background-color:@intensity.Key.Color"></td>
+						<td>@intensity.Value</td>
+					</tr>
+				}
+			</table>
+		</div>
+
+		<div class="prev-data">
+			<p>This time last week </p>
+			<p>@GetTime(prevWeekRides)</p>
+			<p>@GetLastWeekTotal() (total)</p>
+			<table>
+
+				@foreach (var intensity in GetIntensityOccourances(prevWeekRides))
+				{
+					<tr>
+						<td style="background-color:@intensity.Key.Color"></td>
+						<td>@intensity.Value</td>
+					</tr>
+				}
+			</table>
+		</div>
+	</div>
+
+
+	<div class="ride-card">
+		<div class="current-data">
+			<p>This Month</p>
+			<p>@GetTime(thisMonthRides)</p>
+			<p>@GetWeeklyAvg(thisMonthRides, current.Day) (per week)</p>
+			<table>
+				@foreach (var intensity in GetIntensityOccourances(thisMonthRides))
+				{
+					<tr>
+						<td style="background-color:@intensity.Key.Color"></td>
+						<td>@intensity.Value</td>
+					</tr>
+				}
+			</table>
+		</div>
+
+		<div class="prev-data">
+			<p>This time last Month</p>
+			<p>@GetTime(prevMonthToDate)</p>
+			<p>@GetTime(prevMonthRides) (total)</p>
+			<table>
+				@foreach (var intensity in GetIntensityOccourances(prevMonthToDate))
+				{
+					<tr>
+						<td style="background-color:@intensity.Key.Color"></td>
+						<td>@intensity.Value</td>
+					</tr>
+				}
+			</table>
+		</div>
+	</div>
+
+	<div class="ride-card">
+		<div class="current-data">
+			<p>This Year</p>
+			<p>@GetTime(thisYearRides)</p>
+			<p>@GetWeeklyAvg(thisYearRides, current.DayOfYear) (per week)</p>
+			<table>
+				@foreach (var intensity in GetIntensityOccourances(thisYearRides))
+				{
+					<tr>
+						<td style="background-color:@intensity.Key.Color"></td>
+						<td>@intensity.Value</td>
+					</tr>
+				}
+			</table>
+		</div>
+
+		<div class="prev-data">
+			<p>This time last Year</p>
+			<p>@GetTime(prevYearRides)</p>
+			<p>@GetWeeklyAvg(prevYearRides, current.DayOfYear) (per week)</p>
+			<table>
+				@foreach (var intensity in GetIntensityOccourances(prevYearRides))
+				{
+					<tr>
+						<td style="background-color:@intensity.Key.Color"></td>
+						<td>@intensity.Value</td>
+					</tr>
+				}
+			</table>
+		</div>
+	</div>
+
+</div>
+
+@code {
+	DateTime current;
+
+	List<Ride> thisWeekRides;
+	List<Ride> prevWeekRides;
+
+	List<Ride> thisMonthRides;
+	List<Ride> prevMonthToDate;
+	List<Ride> prevMonthRides;
+
+	List<Ride> thisYearRides;
+	List<Ride> prevYearRides;
+
+	List<Ride> LastWeeksRides;
+
+
+	protected override void OnInitialized()
+	{
+
+		_trainingLogController.AppendHighestIntensity(_appState.LoggedInUser.Rides);
+
+		GetInitialRideLists();
+	}
+
+	private void GetInitialRideLists()
+	{
+		current = DateTime.Now;
+		var weekStart = Helpers.StartOfWeek(current);
+
+		thisWeekRides = _rideServices.FilterByWeek(current).ToList();
+		thisMonthRides = _rideServices.FilterByMonth(current.Month, current.Year).ToList();
+		thisYearRides = _rideServices.FilterByYear(current.Year).ToList();
+
+		prevWeekRides = _appState.LoggedInUser.Rides.Where(r => r.RideMetaData.Date > weekStart.AddDays(-7) && r.RideMetaData.Date < current.AddDays(-7)).ToList();
+
+		prevMonthRides = _rideServices.FilterByMonth(current.AddMonths(-1).Month, current.Month != 1 ? current.Year : current.Year - 1).ToList();
+		prevMonthToDate = prevMonthRides.Where(r => r.RideMetaData.Date < current.AddMonths(-1)).ToList();
+		prevYearRides = _appState.LoggedInUser.Rides.Where(r => r.RideMetaData.Date.Year == current.AddYears(-1).Year && r.RideMetaData.Date < current.AddYears(-1)).ToList();
+
+		LastWeeksRides = _appState.LoggedInUser.Rides.Where(r => r.RideMetaData.Date > weekStart.AddDays(-7) && r.RideMetaData.Date < weekStart).ToList();
+	}
+
+	private Dictionary<Intensity, int> GetIntensityOccourances(List<Ride> rides)
+	{
+		Dictionary<Intensity, int> intensityOccourances = new Dictionary<Intensity, int>();
+		foreach (var intensity in Constants.Intensities)
+		{
+			intensityOccourances.Add(intensity, 0);
+		}
+
+		foreach (var ride in rides)
+		{
+			intensityOccourances[ride.TopIntensity] += 1;
+		}
+
+		return intensityOccourances;
+
+	}
+
+	private string GetTime(List<Ride> rides)
+	{
+		var time = rides.Sum(r => r.RideMetaData.TimeSeconds);
+		return Helpers.ConvertSecToReadableLong(time);
+	}
+
+	private string GetWeeklyAvg(List<Ride> rides, int weeksIn)
+	{
+		var weeksIntoMonth = (float)weeksIn / 7;
+		var time = rides.Sum(r => r.RideMetaData.TimeSeconds);
+		return Helpers.ConvertSecToReadableLong((int)(time / weeksIntoMonth));
+	}
+
+	private string GetLastWeekTotal()
+	{
+		var time = LastWeeksRides.Sum(r => r.RideMetaData.TimeSeconds);
+		return Helpers.ConvertSecToReadableLong(time);
+	}
+
+	private string WeekPace(List<Ride> rides)
+	{
+		var time = rides.Sum(r => r.RideMetaData.TimeSeconds);
+		var day = (int)current.DayOfWeek == 0 ? 7 : (int)current.DayOfWeek;
+		var ratio = 7 / (float)day;
+		return Helpers.ConvertSecToReadableLong((int)(ratio * time));
+	}
+
+}
+
+<style>
+	td {
+		width: 25px;
+		margin: 5px;
+		text-align: right;
+	}
+
+	.current-data {
+		float: left;
+	}
+
+	.prev-data {
+		float: right;
+	}
+
+	.ride-card {
+		width: 30%;
+	}
+</style>

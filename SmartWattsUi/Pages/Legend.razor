@@ -1,0 +1,64 @@
+﻿@using SmartWattsCore
+
+	<div class="legend">
+		<h5>Legend</h5>
+		@if (legend)
+		{
+			<span class="oi oi-collapse-up legend-collapse" @onclick="CollapseExpand"></span>
+			<hr />
+			@foreach (var intensity in Constants.Intensities)
+			{
+				<div class="legend-color-square" style="background-color: @intensity.Color"></div>
+				<span class="legend-description">@intensity.Description</span>
+			}
+		}
+		else
+		{
+			<span class="oi oi-collapse-down legend-collapse" @onclick="CollapseExpand"></span>
+		}
+	</div>
+
+@code {
+	bool legend = true;
+
+	private void CollapseExpand()
+	{
+		legend = !legend;
+	}
+}
+
+<style>
+	.legend {
+		position: fixed;
+		bottom: 5%;
+		right: 2%;
+		width: auto;
+		height: auto;
+		border-radius: 10px;
+		background-color: lightblue;
+		padding: 10px 35px 0px 10px;
+	}
+
+	.legend-color-square {
+		width: 20px;
+		height: 20px;
+	}
+
+	.legend-description {
+		position: relative;
+		bottom: 21px;
+		left: 23px;
+		font-size: 12px;
+	}
+
+	.legend-collapse {
+		position: relative;
+		left: 10%;
+		cursor: pointer;
+		float: right;
+	}
+
+	.legend h5 {
+		display: inline-block;
+	}
+</style>

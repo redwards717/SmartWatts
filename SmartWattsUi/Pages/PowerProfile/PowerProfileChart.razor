@@ -1,0 +1,199 @@
+﻿
+
+@using SmartWattsCore.Models;
+@using SmartWattsUi.Controllers;
+@using SmartWattsCore;
+
+@inject NavigationManager NavigationManager
+@inject AppState _appState
+@inject PowerProfileController _powerProfileController
+
+<div class="container ride-card">
+<table>
+	<tr>
+		<th></th>
+		<th>30 Days</th>
+		<th></th>
+		<th>90 Days</th>
+		<th></th>
+		<th>1 Year</th>
+		<th></th>
+		<th>All-Time</th>
+	</tr>
+	@foreach (var pp in powerPoints)
+	{
+	<tr class="@(improvments.Contains(pp) ? "improvments" : "") @(!improvments.Contains(pp) && LookBack != 0 ? "no-improvments" : "")">
+		<td>@Helpers.ConvertSecToReadable(pp)</td>
+		<td>@PowerHistory30.FirstOrDefault(ph => ph.Key == pp).Value</td>
+		<td>
+			@if (@GetPercentageOff(pp, PowerHistory90, PowerHistory30) != "0.0")
+			{
+				<span class="oi oi-arrow-thick-bottom" style="color: @GetColor(@GetPercentageOff(pp, PowerHistory90, PowerHistory30))"></span>
+			}
+			else if (PowerHistory30.FirstOrDefault(ph => ph.Key == pp).Value == 0)
+			{
+				<span class="oi oi-thumb-down" style='color: grey'></span>
+			}
+			else
+			{
+				<span class="oi oi-thumb-up" style='color: green'></span>
+			}
+			@GetPercentageOff(pp, PowerHistory90, PowerHistory30)
+		</td>
+		<td>@PowerHistory90.FirstOrDefault(ph => ph.Key == pp).Value</td>
+		<td>
+			@if (@GetPercentageOff(pp, PowerHistory365, PowerHistory90) != "0.0")
+			{
+				<span class="oi oi-arrow-thick-bottom" style="color: @GetColor(@GetPercentageOff(pp, PowerHistory365, PowerHistory90))"></span>
+			}
+			else if (PowerHistory90.FirstOrDefault(ph => ph.Key == pp).Value == 0)
+			{
+				<span class="oi oi-thumb-down" style='color: grey'></span>
+			}
+			else
+			{
+				<span class="oi oi-thumb-up" style='color: green'></span>
+			}
+			@GetPercentageOff(pp, PowerHistory365, PowerHistory90)
+		</td>
+		<td>@PowerHistory365.FirstOrDefault(ph => ph.Key == pp).Value</td>
+		<td>
+			@if (@GetPercentageOff(pp, PowerHistoryAll, PowerHistory365) != "0.0")
+			{
+				<span class="oi oi-arrow-thick-bottom" style="color: @GetColor(@GetPercentageOff(pp, PowerHistoryAll, PowerHistory365))"></span>
+			}
+			else if (PowerHistory365.FirstOrDefault(ph => ph.Key == pp).Value == 0)
+			{
+				<span class="oi oi-thumb-down" style='color: grey'></span>
+			}
+			else
+			{
+				<span class="oi oi-thumb-up" style='color: green'></span>
+			}
+			@GetPercentageOff(pp, PowerHistoryAll, PowerHistory365)
+		</td>
+		<td>@PowerHistoryAll.FirstOrDefault(ph => ph.Key == pp).Value</td>
+	</tr>
+	}
+</table>
+</div>
+
+
+@code {
+	[Parameter]
+	public List<Ride> Rides { get; set; }
+
+	[Parameter]
+	public int LookBack { get; set; }
+
+	List<Ride> displayRides = new List<Ride>();
+	IEnumerable<int> improvments;
+
+	Dictionary<int, int> PowerHistory30 = new Dictionary<int, int>();
+	Dictionary<int, int> PowerHistory90 = new Dictionary<int, int>();
+	Dictionary<int, int> PowerHistory365 = new Dictionary<int, int>();
+	Dictionary<int, int> PowerHistoryAll = new Dictionary<int, int>();
+	List<int> powerPoints;
+
+	protected override void OnInitialized()
+	{
+		if (_appState.LoggedInUser == null)
+		{
+			NavigationManager.NavigateTo("splash");
+		}
+		else
+		{
+			FindImprovments();
+			RemoveRides();
+			GetPowerHistories();
+		}
+	}
+
+	private void RemoveRides()
+	{
+		var latestDate = Rides.Max(r => r.RideMetaData.Date);
+		displayRides = Rides.Where(r => r.RideMetaData.Date <= latestDate.AddDays(-LookBack)).ToList();
+	}
+
+	private void FindImprovments()
+	{
+		var changes = new List<int>();
+
+		var currentPH = _powerProfileController.GetPowerCurveHistory(Rides, DateTime.Now, 30);
+		powerPoints = currentPH.Keys.ToList();
+		var latestDate = Rides.Max(r => r.RideMetaData.Date);
+		var previousPH = _powerProfileController.GetPowerCurveHistory(Rides,latestDate.AddMinutes(-1), 30);
+
+		improvments = powerPoints.Where(pp => currentPH[pp] > previousPH[pp]);
+	}
+
+	private void GetPowerHistories()
+	{
+		PowerHistory30 = _powerProfileController.GetPowerCurveHistory(displayRides, DateTime.Now, 30);
+		PowerHistory90 = _powerProfileController.GetPowerCurveHistory(displayRides, DateTime.Now, 90);
+		PowerHistory365 = _powerProfileController.GetPowerCurveHistory(displayRides, DateTime.Now, 365);
+		PowerHistoryAll = _powerProfileController.GetPowerCurveHistory(displayRides, DateTime.Now, 9999);
+	}
+
+	private string GetPercentageOff(int powerPoint, Dictionary<int, int> powerHistoryOld, Dictionary<int, int> powerHistoryNew)
+	{
+		var newValue = powerHistoryNew.FirstOrDefault(ph => ph.Key == powerPoint).Value;
+		var oldValue = powerHistoryOld.FirstOrDefault(ph => ph.Key == powerPoint).Value;
+
+		var diff = (((float)newValue / oldValue) - 1) * 100;
+
+		if (oldValue == 0)
+		{
+			return "0.0";
+		}
+
+		return (Math.Abs(diff)).ToString("0.0");
+	}
+
+	private string GetColor(string powerDiff)
+	{
+		var power = float.Parse(powerDiff);
+
+		if (power < .1)
+		{
+			return "green";
+		}
+		else if (power >= .1 && power <= 5.0)
+		{
+			return "yellow";
+		}
+		else if (power > 5.0 && power <= 10.0)
+		{
+			return "orange";
+		}
+		else
+		{
+			return "red";
+		}
+	}
+
+}
+
+
+<style>
+	td:nth-child(even) {
+		border: 1px black solid;
+		width: 60px;
+	}
+
+	.improvments {
+		animation-name: blink;
+		animation-duration: 2s;
+		animation-iteration-count: infinite;
+	}
+
+	.no-improvments {
+		opacity: .2;
+	}
+
+	@@keyframes
+	blink {
+		from {background-color: whitesmoke;}
+		to {background-color: lightyellow;}
+	}
+</style>

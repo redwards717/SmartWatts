@@ -1,0 +1,235 @@
+﻿@page "/feed";
+
+@using System.Linq;
+@using Blazor.FileReader;
+@using SmartWattsCore.Models;
+@using SmartWattsCore.Services;
+@using SmartWattsCore;
+@using SmartWattsUi.Controllers;
+@using SmartWattsUi.Pages.User;
+
+@inject NavigationManager NavigationManager
+@inject IFileReaderService fileReaderService;
+@inject IXmlServices xmlServices;
+@inject IPowerCurveServices powerCurveServices;
+@inject RideController _rideController;
+@inject AppState _appState;
+
+
+	<div class="time-frame-selector">
+		Comparison:
+		<select @bind="@timeFrame">
+			<option value=30>30 Days</option>
+			<option value=90>90 Days</option>
+			<option value=365>1 Year</option>
+			<option value=9999>All Time</option>
+		</select>
+	</div>
+
+@*--------------------------------------------------------
+code to normalize power data from existing peloton rides
+--------------------------------------------------------*@
+@*<button @onclick="normalize">Normalize</button>
+@code{
+	public async Task normalize()
+	{
+		var rides = _appState.LoggedInUser.Rides.Where(r => r.RideMetaData.Date.Year == 2020);
+		foreach (var ride in rides)
+		{
+			ride.Cyclist = _appState.LoggedInUser;
+			var keys = ride.PowerCurve.Keys.ToList();
+			foreach (var pc in keys)
+			{
+				ride.PowerCurve[pc] = (int)(ride.PowerCurve[pc] * .78);
+			}
+		}
+
+		await _rideController.UpdatePowerCurve(rides.ToList());
+
+	}
+}*@
+
+
+	@if (_appState.LoggedInUser != null && _appState.LoggedInUser.Rides != null && String.IsNullOrWhiteSpace(loadingMsg))
+	{
+		<h5> Welcome @_appState.LoggedInUser.Username !</h5>
+		<div>
+			@foreach (var year in yearsToDisplay)
+			{
+				<span class="@(year == selectedYear ? "month-year-selected" : "month-year")" @onclick="e => ChangeYear(year)">@year</span>
+			}
+		</div>
+		<div class="month-year-select">
+			@foreach (var month in Enum.GetNames(typeof(Constants.Months)))
+			{
+				<span class="@(month ==  Enum.GetName(typeof(Constants.Months), selectedMonth)? "month-year-selected" : "month-year")" 
+					  @onclick="e => ChangeMonth(month)">@month</span>
+			}
+		</div>
+
+		@if (displayedRides == null || displayedRides.Count() == 0)
+		{
+			<h3>There are no rides logged for @(Enum.GetName(typeof(Constants.Months), selectedMonth)) @selectedYear</h3>
+		}
+		else
+		{
+			@foreach (var ride in displayedRides)
+			{
+				<div class="ride-card">
+					<h6>@ride.RideMetaData.Date</h6>
+					<h6><b>@ride.RideMetaData.RideName</b><span class="oi oi-pencil edit-ride"></span><span class="oi oi-trash delete-ride" @onclick="e => DeleteRide(ride)"></span></h6>
+					<ul>
+						<li>Miles: @Helpers.ConvertMetersToMiles(ride.RideMetaData.DistanceMeters)</li>
+						<li>Time: @Helpers.ConvertSecToReadable(ride.RideMetaData.TimeSeconds)</li>
+						<li>Average Watts: @ride.RideMetaData.AvgWatts</li>
+						<li>Average Heart Rate:@ride.RideMetaData.AvgHeartRate</li>
+						<li>Average Cadence: @ride.RideMetaData.AvgCadence</li>
+					</ul>
+
+					<PowerTable Ride="ride" TimeFrame="timeFrame"></PowerTable>
+					<hr />
+				</div>
+			}
+		}
+
+
+		<Legend></Legend>
+		
+	}
+	else 
+	{ 
+		<Loader Msg=@loadingMsg></Loader>
+	}
+
+
+
+
+@code {
+
+	List<Ride> displayedRides;
+	int timeFrame = 30;
+	bool legend = true;
+	string loadingMsg;
+	int selectedMonth;
+	int selectedYear;
+	List<int> yearsToDisplay = new List<int>();
+
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		if (_appState.LoggedInUser == null)
+		{
+			NavigationManager.NavigateTo("splash");
+		}
+		else
+		{
+			var currentDate = DateTime.Now;
+			selectedMonth = currentDate.Month;
+			selectedYear = currentDate.Year;
+
+			loadingMsg = $"Hang Tight {_appState.LoggedInUser.Username}, we are fetching your rides!";
+			_appState.LoggedInUser.Rides = await _rideController.GetRides(_appState.LoggedInUser.CyclistId);
+
+			GetYearsWithRides();
+			GetRidesToDisplay();
+			loadingMsg = "";
+		}
+	}
+
+	private void GetYearsWithRides()
+	{
+		var uniqueYearRides = _appState.LoggedInUser.Rides.GroupBy(r => r.RideMetaData.Date.Year).Select(g => g.First());
+		foreach (var ride in uniqueYearRides)
+		{
+			yearsToDisplay.Add(ride.RideMetaData.Date.Year);
+		}
+	}
+
+	private void GetRidesToDisplay()
+	{
+		displayedRides = _appState.LoggedInUser.Rides.Where(r => r.RideMetaData.Date.Year == selectedYear && r.RideMetaData.Date.Month == selectedMonth).ToList();
+	}
+
+	private void ChangeYear(int year)
+	{
+		selectedYear = year;
+		GetRidesToDisplay();
+	}
+
+	private void ChangeMonth(string month)
+	{
+		selectedMonth = (int)Enum.Parse(typeof(Constants.Months), month);
+		GetRidesToDisplay();
+	}
+
+	private string GetReadableTime(int time)
+	{
+		return Helpers.ConvertSecToReadable(time);
+	}
+
+
+	private async Task DeleteRide(Ride ride)
+	{
+		await _rideController.DeleteRide(ride);
+
+		displayedRides.Remove(ride);
+		_appState.LoggedInUser.Rides.Remove(ride);
+	}
+
+	private void CollapseExpand()
+	{
+		legend = !legend;
+	}
+
+}
+
+<style>
+	
+	.close {
+		color: orangered;
+		width: 20px;
+		height: 20px;
+		border-radius: 100%;
+		cursor: pointer;
+	}
+
+	.ride-card {
+		background: #e8f8f8;
+		box-shadow: #ade6e6 2px 4px;
+		padding: 10px;
+		margin: 20px;
+	}
+
+	.time-frame-selector {
+		position: fixed;
+		top: 3%;
+		left: 40%;
+		z-index: 3;
+	}
+
+	.month-year-selected {
+		color: purple;
+		font-size: 16px;
+	}
+
+	.month-year {
+		color: blue;
+		text-decoration: underline;
+		font-size: 14px;
+		cursor: pointer;
+	}
+
+	.edit-ride {
+		color: orange;
+		padding: 5px;
+		cursor: pointer;
+	}
+
+	.delete-ride {
+		font-size: 20px;
+		color: red;
+		cursor: pointer;
+	}
+
+</style>

@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UserSecretsId>7490fc0b-fa74-48f1-acf6-a9677f5f6fb8</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Tewr.Blazor.FileReader" Version="1.6.0.20166" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ClassLibrary1\SmartWattsCore.csproj" />
+    <ProjectReference Include="..\SmartWattsDataAccess\SmartWattsDataAccess.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <RestoreSuccess Condition=" '$(RestoreSuccess)' == '' ">True</RestoreSuccess>
+    <RestoreTool Condition=" '$(RestoreTool)' == '' ">NuGet</RestoreTool>
+    <ProjectAssetsFile Condition=" '$(ProjectAssetsFile)' == '' ">$(MSBuildThisFileDirectory)project.assets.json</ProjectAssetsFile>
+    <NuGetPackageRoot Condition=" '$(NuGetPackageRoot)' == '' ">$(UserProfile)\.nuget\packages\</NuGetPackageRoot>
+    <NuGetPackageFolders Condition=" '$(NuGetPackageFolders)' == '' ">C:\Users\redwa\.nuget\packages\;C:\Microsoft\Xamarin\NuGet\</NuGetPackageFolders>
+    <NuGetProjectStyle Condition=" '$(NuGetProjectStyle)' == '' ">PackageReference</NuGetProjectStyle>
+    <NuGetToolVersion Condition=" '$(NuGetToolVersion)' == '' ">5.7.0</NuGetToolVersion>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <SourceRoot Include="$([MSBuild]::EnsureTrailingSlash($(NuGetPackageFolders)))" />
+  </ItemGroup>
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+  <ImportGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Import Project="$(NuGetPackageRoot)tewr.blazor.filereader\1.6.0.20166\buildTransitive\Tewr.Blazor.FileReader.props" Condition="Exists('$(NuGetPackageRoot)tewr.blazor.filereader\1.6.0.20166\buildTransitive\Tewr.Blazor.FileReader.props')" />
+  </ImportGroup>
+  <PropertyGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <PkgTransientFaultHandling_Core Condition=" '$(PkgTransientFaultHandling_Core)' == '' ">C:\Users\redwa\.nuget\packages\transientfaulthandling.core\5.1.1209.1</PkgTransientFaultHandling_Core>
+    <PkgEnterpriseLibrary_TransientFaultHandling Condition=" '$(PkgEnterpriseLibrary_TransientFaultHandling)' == '' ">C:\Users\redwa\.nuget\packages\enterpriselibrary.transientfaulthandling\6.0.1304</PkgEnterpriseLibrary_TransientFaultHandling>
+    <PkgEnterpriseLibrary_TransientFaultHandling_Data Condition=" '$(PkgEnterpriseLibrary_TransientFaultHandling_Data)' == '' ">C:\Users\redwa\.nuget\packages\enterpriselibrary.transientfaulthandling.data\6.0.1304.1</PkgEnterpriseLibrary_TransientFaultHandling_Data>
+  </PropertyGroup>
+</Project>

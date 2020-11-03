@@ -1,0 +1,208 @@
+﻿@using SmartWattsUi.Pages
+@using SmartWattsCore.Models
+
+@inject AppState _appState
+
+
+	<div class="row">
+		<div class="col-1 nav-icon">
+			@if (_appState.LoggedInUser != null)
+			{
+				<span class="oi oi-plus plus" @onclick="e => ToggleWindow(true)"></span>
+				<span class="tool-tip">Submit New Ride</span>
+			}
+		</div>
+		<div class="col-1 nav-icon">
+			<NavLink class="nav-link" href="feed">
+				<span class="oi oi-list" aria-hidden="true"></span>
+				<span class="tool-tip">Ride List</span>
+			</NavLink>
+		</div>
+		<div class="col-1 nav-icon">
+			<NavLink class="nav-link" href="traininglog">
+				<span class="oi oi-calendar" aria-hidden="true"></span>
+				<span class="tool-tip">Training Log</span>
+			</NavLink>
+		</div>
+		<div class="col-1 nav-icon">
+			<NavLink class="nav-link" href="powerprofile">
+				<span class="oi oi-bolt" aria-hidden="true"></span>
+				<span class="tool-tip">Power Profile</span>
+			</NavLink>
+		</div>
+		@*<div class="col-1 nav-icon">
+			<NavLink class="nav-link" href="leaderboard">
+				<span class="oi oi-bar-chart" aria-hidden="true"></span>
+				<span class="tool-tip">Leaderboard</span>
+			</NavLink>
+		</div>*@
+		@*<div class="col-2">
+			<NavLink class="nav-link" href="progression">
+				<span class="oi oi-grid-two-up" aria-hidden="true"></span> Progression
+			</NavLink>
+		</div>*@
+		<div class="col-5">
+
+		</div>
+		<div class="col-2">
+			<NavLink class="nav-link" href="splash">
+				<span class="oi oi-person" aria-hidden="true"></span>
+				@if (_appState.LoggedInUser != null)
+				{
+					@_appState.LoggedInUser.Username
+
+				}
+				else
+				{
+					<span>Not Logged In</span>
+				}
+			</NavLink>
+		</div>
+		<div class="col-1 nav-icon">
+			<NavLink class="nav-link" href="splash">
+				<span class="oi oi-account-logout" aria-hidden="true" @onclick="Logoff"></span>
+				<span class="tool-tip">Logout</span>
+			</NavLink>
+		</div>
+	</div>
+
+@if (_appState.AddWindow)
+{
+	<div class="add-window">
+		<span class="oi oi-circle-x close" @onclick="e => ToggleWindow(false)"></span>
+		<AddRide></AddRide>
+
+	</div>
+}
+
+@if (_appState.RideView)
+{
+	<div class="add-window">
+		<span class="oi oi-circle-x close" @onclick="e => ToggleRideWindow(false)"></span>
+		<SingleRideDetail Ride="_appState.RideToView"></SingleRideDetail>
+
+	</div>
+}
+
+@if (Toast.ToastOn)
+{
+	<div class="toaster">
+		<span class="oi oi-circle-x" @onclick="CloseToast"></span>
+		<p>@Toast.ToastText</p>
+	</div>
+}
+
+
+@code {
+
+	protected override void OnInitialized()
+	{
+		_appState.OnChange += StateHasChanged;
+	}
+
+	private void ToggleWindow(bool toggleOn)
+	{
+		_appState.ToggleAddWindow(toggleOn);
+	}
+
+	private void ToggleRideWindow(bool toggleOn)
+	{
+		_appState.ToggleRideViewWindow(toggleOn, _appState.RideToView);
+	}
+
+	private void Logoff()
+	{
+		_appState.LogOut();
+	}
+
+	private void CloseToast()
+	{
+		Toast.ToastOn = false;
+	}
+
+}
+
+<style>
+	.add-window {
+		position: fixed;
+		top: 0%;
+		left: 10%;
+		width: auto;
+		min-width: 50%;
+		height: auto;
+		box-shadow: 2px 4px darkblue;
+		background: lightblue;
+		padding: 15px;
+		z-index: 2;
+		padding-bottom: 100px;
+		margin-top: 100px;
+	}
+
+	.plus {
+		color: green;
+		font-size: 25px;
+		border: 2px solid green;
+		border-radius: 10px;
+		padding: 5px;
+		margin: 10px;
+		cursor: pointer;
+	}
+	
+	.oi-list, .oi-calendar, .oi-bar-chart, .oi-bolt {
+		font-size: 30px;
+	}
+
+	.oi-person, .oi-account-logout {
+		font-size: 20px;
+	}
+
+
+	.toaster{
+		z-index: 4;
+		padding: 10px;
+		position: fixed;
+		right: 0px;
+		width: 20%;
+		height: 15%;
+		background-color: @Toast.ToastColor;
+		border-radius: 3px;
+		animation-name: popout;
+		animation-delay: 0s;
+		animation-duration: 2s;
+		animation-iteration-count: 1;
+		animation-timing-function: ease-out;
+    }
+
+
+
+	.nav-icon {
+		position: relative;
+	}
+
+	.nav-icon .tool-tip {
+		visibility: hidden;
+		width: 120px;
+		background-color: black;
+		color: #fff;
+		text-align: center;
+		border-radius: 6px;
+		padding: 5px 0;
+		position: absolute;
+		top: 35px;
+		z-index: 1;
+	}
+
+	.nav-icon:hover .tool-tip {
+		visibility: visible;
+	}
+
+	@@keyframes popout {
+		0% {
+			transform: translateX(100%);
+		}
+
+		100% {
+			transform: translateX(0%);
+		}
+	}
+</style>

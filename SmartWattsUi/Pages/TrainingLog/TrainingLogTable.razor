@@ -1,0 +1,158 @@
+﻿@using SmartWattsUi.Services
+@using SmartWattsUi.Controllers
+@using SmartWattsCore.Models
+@using SmartWattsCore
+
+@inject RideServices _rideServices
+@inject TrainingLogController _trainingLogController
+
+	<div class="container">
+		<div class="pp-checkboxes">
+			@foreach (var pp in Constants.PowerPoints)
+			{
+				bool Checked = false;
+				@if (powerPointsSelected.Contains(pp))
+				{
+					Checked = true;
+				}
+				<input type="checkbox" id="@pp" checked="@Checked" @onchange="e => PowerPointClicked(pp, e)"/>
+				<label for="@pp">@Helpers.ConvertSecToReadable(pp, true)</label>
+			}
+		</div>
+		<table class="log-table">
+			<tr>
+				<th>Year</th>
+				<th>Rides</th>
+				<th>Total Time</th>
+				<th>Weekly Avg</th>
+				@foreach (var pp in powerPointsSelected)
+				{
+					<th>@Helpers.ConvertSecToReadable(pp, true)</th>
+				}
+			</tr>
+			@foreach (var year in yearsToDisplay)
+			{
+		<tr @onclick="e => SelectYear(year)" style="background-color:@(selectedYear == year ? "yellow" : "lightgrey")">
+			<td>@year</td>
+			<td>@GetYearTotalRides(year)</td>
+			<td>@Helpers.ConvertSecToReadable(GetYearTotalTime(year), false)</td>
+			<td>@Helpers.ConvertSecToReadable(GetYearTotalTime(year) / 52, false)</td>
+			@foreach (var pp in powerPointsSelected)
+			{
+				<td>@GetSinglePowerPointAvg(pp, year)</td>
+			}
+		</tr>
+				@if (selectedYear == year)
+				{
+					@foreach (var month in Enum.GetNames(typeof(Constants.Months)))
+					{
+					<tr class="month-row">
+						<td>@month</td>
+						<td>@GetMonthTotalRides(month)</td>
+						<td>@Helpers.ConvertSecToReadable(GetMonthTotalTime(month), false)</td>
+						<td>@Helpers.ConvertSecToReadable(GetMonthWeeklyAvg(month), false)</td>
+						@foreach (var pp in powerPointsSelected)
+						{
+							<td>@GetSinglePowerPointAvg(pp, year, month)</td>
+						}
+					</tr>
+					}
+				}
+			}
+		</table>
+
+
+	</div>
+
+	@code {
+		List<int> yearsToDisplay;
+		int selectedYear = 0;
+		List<int> powerPointsSelected = new List<int>() { 5, 60, 60 * 5, 60 * 20 };
+
+		protected override void OnInitialized()
+		{
+			var current = DateTime.Now;
+			yearsToDisplay = _rideServices.GetYearsWithRides();
+		}
+
+		private void SelectYear(int year)
+		{
+			selectedYear = selectedYear == year ? 0 : year;
+		}
+
+		private void PowerPointClicked(int powerPoint, EventArgs e)
+		{
+			if (powerPointsSelected.Contains(powerPoint))
+			{
+				powerPointsSelected.Remove(powerPoint);
+			}
+			else
+			{
+				powerPointsSelected.Add(powerPoint);
+			}
+
+			powerPointsSelected.Sort();
+			StateHasChanged();
+		}
+
+		private int GetSinglePowerPointAvg(int pp, int year, string month = null)
+		{
+			var monthInt = month == null ? 0 : (int)Enum.Parse(typeof(Constants.Months), month);
+
+			var rides = monthInt == 0 ? _rideServices.FilterByYear(year) : _rideServices.FilterByMonth(monthInt, year);
+			var value = _trainingLogController.GetSinglePowerPointAvg(rides.ToList(), pp);
+			return value;
+		}
+
+		private int GetYearTotalRides(int year)
+		{
+			var rides = _rideServices.FilterByYear(year);
+			return rides.Count();
+		}
+
+		private int GetYearTotalTime(int year)
+		{
+			var rides = _rideServices.FilterByYear(year);
+			return rides.Sum(r => r.RideMetaData.TimeSeconds);
+		}
+
+		private int GetMonthTotalRides(string month)
+		{
+			var monthInt = (int)Enum.Parse(typeof(Constants.Months), month);
+
+			var rides = _rideServices.FilterByMonth(monthInt, selectedYear);
+			return rides.Count();
+		}
+
+		private int GetMonthTotalTime(string month)
+		{
+			var monthInt = (int)Enum.Parse(typeof(Constants.Months), month);
+
+			var rides = _rideServices.FilterByMonth(monthInt, selectedYear);
+			return rides.Sum(r => r.RideMetaData.TimeSeconds);
+		}
+
+		private int GetMonthWeeklyAvg(string month)
+		{
+			var monthInt = (int)Enum.Parse(typeof(Constants.Months), month);
+			var time = GetMonthTotalTime(month);
+
+			var daysInMonth = DateTime.DaysInMonth(selectedYear, monthInt);
+
+			return (int)(time / ((float)daysInMonth / 7));
+		}
+	}
+
+
+
+	<style>
+		.log-table td {
+			width: 70px;
+			border: 1px black solid;
+			padding: 3px;
+		}
+
+		.month-row {
+			background-color: whitesmoke;
+		}
+	</style>

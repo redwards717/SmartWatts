@@ -1,0 +1,117 @@
+﻿@using SmartWattsCore;
+@using SmartWattsCore.Models;
+@using SmartWattsUi.Controllers
+
+@inject RideController _rideController
+
+
+	<table class="power-table">
+		<tr>
+			<th></th>
+			@foreach (var pc in Ride.PowerCurve)
+			{
+				<th>@GetReadableTime(@pc.Key)</th>
+			}
+		</tr>
+		<tr>
+			<td class="row-title">This Ride</td>
+			@foreach (var pc in Ride.PowerCurve)
+			{
+
+				<td style="background-color:@GetIntensity(pc)">@pc.Value</td>
+			}
+		</tr>
+		@if (Ride.PowerCurveHistory != null)
+		{
+			<tr style="background-color:@CompareRow(30)">
+				<td class="row-title">30 Day</td>
+				@foreach (var pc in Ride.PowerCurveHistory.PowerCurve30)
+				{
+
+					<td>@pc.Value</td>
+				}
+			</tr>
+			<tr style="background-color:@CompareRow(90)">
+				<td class="row-title">90 Day</td>
+				@foreach (var pc in Ride.PowerCurveHistory.PowerCurve90)
+				{
+
+					<td>@pc.Value</td>
+				}
+			</tr>
+			<tr style="background-color:@CompareRow(365)">
+				<td class="row-title">1 Year</td>
+				@foreach (var pc in Ride.PowerCurveHistory.PowerCurve365)
+				{
+
+					<td>@pc.Value</td>
+				}
+			</tr>
+			<tr style="background-color:@CompareRow(9999)">
+				<td class="row-title">All Time</td>
+				@foreach (var pc in Ride.PowerCurveHistory.PowerCurveAll)
+				{
+
+					<td>@pc.Value</td>
+				}
+			</tr>
+		}
+	</table>
+
+
+
+
+@code {
+		[Parameter]
+		public Ride Ride { get; set; }
+
+		[Parameter]
+		public int TimeFrame { get; set; }
+
+	protected override void OnParametersSet()
+	{
+		var test = TimeFrame;
+	}
+
+	private string GetReadableTime(int time)
+	{
+		return Helpers.ConvertSecToReadable(time);
+	}
+
+	private string GetIntensity(KeyValuePair<int, int> powerPoint)
+	{
+		var intensity = _rideController.GetIntensity(powerPoint, Ride, TimeFrame);
+
+		if (intensity == null)
+		{
+			return "white";
+		}
+
+		return intensity.Color;
+	}
+
+	private string CompareRow(int rowTimeFrame)
+	{
+		return rowTimeFrame == TimeFrame ? "lightyellow" : "white";
+	}
+}
+
+<style>
+	table, th, td {
+		border: 1px solid black;
+	}
+
+	th, td {
+		padding: 5px;
+		width: 65px;
+	}
+
+	th, td {
+		text-align: center;
+	}
+
+	.row-title {
+		width: 100px;
+	}
+
+</style>

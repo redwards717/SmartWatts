@@ -1,0 +1,9 @@
+C:\Users\Rhys\source\repos\SmartWatts\ClassLibrary1\bin\Release\netcoreapp3.1\SmartWattsCore.deps.json
+C:\Users\Rhys\source\repos\SmartWatts\ClassLibrary1\bin\Release\netcoreapp3.1\SmartWattsCore.dll
+C:\Users\Rhys\source\repos\SmartWatts\ClassLibrary1\bin\Release\netcoreapp3.1\SmartWattsCore.pdb
+C:\Users\Rhys\source\repos\SmartWatts\ClassLibrary1\obj\Release\netcoreapp3.1\SmartWattsCore.csprojAssemblyReference.cache
+C:\Users\Rhys\source\repos\SmartWatts\ClassLibrary1\obj\Release\netcoreapp3.1\SmartWattsCore.AssemblyInfoInputs.cache
+C:\Users\Rhys\source\repos\SmartWatts\ClassLibrary1\obj\Release\netcoreapp3.1\SmartWattsCore.AssemblyInfo.cs
+C:\Users\Rhys\source\repos\SmartWatts\ClassLibrary1\obj\Release\netcoreapp3.1\SmartWattsCore.csproj.CoreCompileInputs.cache
+C:\Users\Rhys\source\repos\SmartWatts\ClassLibrary1\obj\Release\netcoreapp3.1\SmartWattsCore.dll
+C:\Users\Rhys\source\repos\SmartWatts\ClassLibrary1\obj\Release\netcoreapp3.1\SmartWattsCore.pdb

@@ -1,0 +1,56 @@
+﻿@page "/traininglog"
+
+
+<TrainingLogSummary></TrainingLogSummary>
+<hr />
+<div class="container-fluid calendar-table">
+	<div class="tabs">
+		@foreach (var tab in tabs)
+		{
+			<span class="@(activeTab == tab ? "selected" : "")" @onclick="e => activeTab = tab">@tab</span>
+		}
+
+	</div>
+	<hr />
+	@if (activeTab == "Calendar")
+	{
+		<TrainingLogCalendar></TrainingLogCalendar>
+	}
+	else if (activeTab == "Table")
+	{
+		<TrainingLogTable></TrainingLogTable>
+	}
+</div>
+
+<Legend></Legend>
+
+
+
+@code
+{
+	string activeTab = "Calendar";
+	List<string> tabs = new List<string>() { "Calendar", "Table" };
+
+
+	protected override void OnInitialized()
+	{
+
+	}
+
+}
+
+<style>
+	.tabs span {
+		cursor: pointer;
+		font-size: 15px;
+	}
+
+	.tabs .selected {
+		border: solid 1px black;
+		background-color: lightgray;
+	}
+
+	.calendar-table {
+		margin-bottom: 300px;
+	}
+</style>
